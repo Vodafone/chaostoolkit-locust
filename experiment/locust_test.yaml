@@ -1,0 +1,61 @@
+title: Locust module test
+description: Running chaostoolkit locust module probes and actions
+configuration:
+
+  locust: null
+
+  max_latency_tolerance: 300
+  locust:
+    host: http://localhost:8089
+
+steady-state-hypothesis:
+  title: Locust server must be running
+  probes:
+    - type: probe
+      name: is_locust_running
+      tolerance: true
+      provider:
+        type: python
+        module: chaoslocust.probes
+        func: is_locust_running
+
+method:
+  - type: action
+    name: start_locust_test
+    provider:
+      type: python
+      module: chaoslocust.actions
+      func: start_locust
+      arguments:
+        user_count: 10
+        spawn_rate: 1
+        host: localhost
+
+  - type: action
+    name: first wait
+    provider:
+      arguments:
+        duration: 10
+      func: idle_for
+      module: chaosaddons.utils.idle
+      type: python
+
+  - type: probe
+    name: avg_latency_should_be_in_tolerance_range
+    tolerance:
+      type: range
+      range: [ 0, $(max_latency_tolerance) ]
+    provider:
+      type: python
+      module: chaoslocust.probes
+      func: get_current_stats
+      arguments:
+        metric_name: current_response_time_percentile_50
+
+  - type: action
+    name: stop_locust_test
+    provider:
+      type: python
+      module: chaoslocust.actions
+      func: stop_locust
+

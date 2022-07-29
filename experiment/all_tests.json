@@ -1,0 +1,6 @@
+[
+    {
+        "description": "Run chaos locust test",
+        "experiment_file": "modules/locust/experiment/locust_test.yaml"
+    }
+]
